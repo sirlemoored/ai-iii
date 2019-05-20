@@ -1,5 +1,7 @@
 using System;
 using System.Text;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace AI 
 {
@@ -161,5 +163,18 @@ namespace AI
                 new byte[]{ 19, 21, 23 },
                 new byte[]{ 14, 22 }
         };
+    }
+
+    public class NMMBoardStateComparer : IEqualityComparer<NMMBoard>
+    {
+        public bool Equals(NMMBoard b1, NMMBoard b2)
+        {
+            return b1.fields.SequenceEqual(b2.fields);
+        }
+
+        public int GetHashCode(NMMBoard b1)
+        {
+            return 0;
+        }
     }
 }

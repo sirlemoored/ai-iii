@@ -13,7 +13,7 @@ namespace AI
         public sbyte[] millsTotal    { get; private set; }
         public sbyte[] freePawns     { get; private set; }
         public sbyte[] previousMoves { get; private set; }
-        public byte moveColor        { get; private set; }
+        public byte moveColor        { get; set; }
         public byte millMoves        { get; private set; }
 
         public NMMBoard()
@@ -85,7 +85,7 @@ namespace AI
 
         }
 
-        public void RemovePawn(byte index, byte color)
+        public void RemovePawn(byte index, byte color, bool toCapturePawn)
         {
             bool isPartOfMill = false;
             
@@ -119,11 +119,13 @@ namespace AI
             fields[index] = Color.empty;
             if (!isPartOfMill)
                 freePawns[ColorToIndex(color)]--;
+            if (toCapturePawn)
+                pawnsCaptured[ColorToIndex(color)]++;
         }
     
         public void MovePawn(byte origin, byte destination, byte color)
         {            
-            RemovePawn(origin, color);
+            RemovePawn(origin, color, false);
             AddPawn(destination, color);
             previousMoves[ColorToPreviousMoveOrigin(color)] = (sbyte) origin;
             previousMoves[ColorToPreviousMoveDestination(color)] = (sbyte) destination;
@@ -132,7 +134,7 @@ namespace AI
     
         public List<NMMBoard> FindPositionsPlacingPawns()
         {
-            List<NMMBoard> positions = new LinkedList<NMMBoard>();
+            List<NMMBoard> positions = new List<NMMBoard>();
             
             for (byte i = 0; i < fields.Length; i++)
             {
@@ -140,50 +142,59 @@ namespace AI
                 {
                     NMMBoard board = new NMMBoard(this);
                     board.AddPawn(i, moveColor);
-                    board.moveColor = ColorToEnemyColor(moveColor);
                     if (board.millMoves == 0)
                         positions.Add(board);
                     else if (board.millMoves == 1)
-                        positions.AddRange(board.FindPositionsRemovingOnePawn());
+                        positions.AddRange(board.FindPositionsRemovingOnePawn(true));
                     else if (board.millMoves == 2)
                         positions.AddRange(board.FindPositionsRemovingTwoPawns());
+
+                    board.moveColor = ColorToEnemyColor(moveColor);
                 }
             }
+            return positions;
         }
 
-        public List<NMMBoard> FindPositionsRemovingOnePawn()
+        public List<NMMBoard> FindPositionsRemovingOnePawn(bool toChangeColor)
         {
             byte enemyColor = ColorToEnemyColor(moveColor);
             sbyte fPawns = freePawns[ColorToIndex(enemyColor)];
+            sbyte mPawns = (sbyte)(pawnsPlaced[ColorToIndex(enemyColor)] - pawnsCaptured[ColorToIndex(moveColor)] - fPawns);
             if (fPawns == 0)
             {   
                 List<NMMBoard> positions = new List<NMMBoard>();
                 byte enemyMillColor = ColorToMillColor(enemyColor);
                 sbyte limiter = 0;
-                for(byte i = 0; limiter <= fPawns && i < fields.Length; i++)
+                for (byte i = 0; limiter <= mPawns && i < fields.Length; i++)
                 {
                     if (fields[i] == enemyMillColor)
                     {
                         NMMBoard board = new NMMBoard(this);
-                        board.RemovePawn(i, enemyColor);
+                        board.RemovePawn(i, enemyColor, true);
+                        positions.Add(board);
                         limiter++;
+                        if (toChangeColor)
+                            board.moveColor = ColorToEnemyColor(board.moveColor);
                     }
                 }
                 return positions;
             }
             else
             {
-                sbyte mPawns = (sbyte)(pawnsPlaced[ColorToIndex(enemyColor)] - pawnsCaptured[ColorToIndex(moveColor)] - fPawns);
+                
                 List<NMMBoard> positions = new List<NMMBoard>();
                 byte enemyMillColor = ColorToMillColor(enemyColor);
                 sbyte limiter = 0;
-                for(byte i = 0; limiter <= mPawns && i < fields.Length; i++)
+                for (byte i = 0; limiter <= fPawns && i < fields.Length; i++)
                 {
                     if (fields[i] == enemyColor)
                     {
                         NMMBoard board = new NMMBoard(this);
-                        board.RemovePawn(i, enemyColor);
+                        board.RemovePawn(i, enemyColor, true);
+                        positions.Add(board);
                         limiter++;
+                        if (toChangeColor)
+                            board.moveColor = ColorToEnemyColor(board.moveColor);
                     }
                 }
                 return positions;
@@ -192,7 +203,14 @@ namespace AI
 
         public List<NMMBoard> FindPositionsRemovingTwoPawns()
         {
-            
+            List<NMMBoard> positions = new List<NMMBoard>();
+            NMMBoardStateComparer eqComparer = new NMMBoardStateComparer();
+            foreach(NMMBoard board in FindPositionsRemovingOnePawn(false))
+            {
+                positions = positions.Union(board.FindPositionsRemovingOnePawn(false), eqComparer).ToList();
+                board.moveColor = ColorToEnemyColor(board.moveColor);
+            }
+            return positions;
         }
     }
 }
