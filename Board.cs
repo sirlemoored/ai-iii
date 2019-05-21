@@ -51,9 +51,9 @@ namespace AI
         {
             if (pawnsPlaced[ColorToIndex(color)] < NMMBoardSetup.pawnsPerPlayer )
                 return GameState.placing;
-            else if (pawnsCaptured[ColorToIndex(ColorToEnemyColor(color))] == NMMBoardSetup.pawnsPerPlayer - NMMBoardSetup.flyingPhaseLimit)
+            else if (pawnsCaptured[ColorToIndex(color)] == NMMBoardSetup.pawnsPerPlayer - NMMBoardSetup.flyingPhaseLimit)
                 return GameState.flying;
-            else if (pawnsCaptured[ColorToIndex(ColorToEnemyColor(color))] < NMMBoardSetup.pawnsPerPlayer - NMMBoardSetup.flyingPhaseLimit)
+            else if (pawnsCaptured[ColorToIndex(color)] > NMMBoardSetup.pawnsPerPlayer - NMMBoardSetup.flyingPhaseLimit)
                 return GameState.over;
             else
                 return GameState.moving;
@@ -78,6 +78,8 @@ namespace AI
             byte millColor = ColorToMillColor(color);
             fields[index] = color;
             pawnsPlaced[arrIdx]++;
+            if (pawnsPlaced[arrIdx] >= sbyte.MaxValue - 1)
+                pawnsPlaced[arrIdx] = (sbyte)_capacity;
             freePawns[arrIdx]++;
 
             foreach (byte[] possibleMill in NMMBoardSetup.mills[index])

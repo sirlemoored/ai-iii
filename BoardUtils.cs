@@ -82,7 +82,7 @@ namespace AI
         public string PrintBoard()
         {
             StringBuilder sb = new StringBuilder();
-            Func<int,string> f = (int a) => string.Format("{0, 2}", a);
+            Func<int,string> f = (int a) => { if (a == Color.empty) return "  "; else return string.Format("{0, 2}", a); };
             sb.Append(f(fields[21]) + "-----" + f(fields[22]) + "-----" + f(fields[23]) + "\n");
             sb.Append(" |" + f(fields[18]) + "---" + f(fields[19]) + "---" + f(fields[20]) + " |\n");
             sb.Append(" | |" + f(fields[15]) + "-" + f(fields[16]) + "-" + f(fields[17]) + " | |\n");
