@@ -9,15 +9,15 @@ namespace AI
         {
             NMMBoard b = new NMMBoard();
             b.AddPawn(0, Color.white);
-            b.AddPawn(2, Color.white);
-            b.AddPawn(4, Color.white);
-            b.AddPawn(7, Color.white);
-            b.AddPawn(21, Color.black);
+            b.AddPawn(1, Color.white);
+            b.AddPawn(10, Color.white);
             b.AddPawn(22, Color.black);
             b.AddPawn(23, Color.black);
             b.moveColor = Color.white;
-            foreach(var x in b.FindPositionsPlacingPawns())
+            System.Console.WriteLine(b.PrintBoard());
+            foreach(var x in b.FindPositionsFlyingPawns())
             {
+                if (x.millMoves == 1)
                 Console.WriteLine(x.PrintBoard());
             }
         }

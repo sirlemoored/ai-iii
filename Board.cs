@@ -6,6 +6,7 @@ namespace AI
 {
     public partial class NMMBoard
     {
+        private static int[] _ranges = Enumerable.Range(0, _capacity).ToArray();
         private const int _capacity = 24;
         public byte[] fields         { get; private set; }
         public sbyte[] pawnsPlaced   { get; private set; }
@@ -155,6 +156,33 @@ namespace AI
             return positions;
         }
 
+        public List<NMMBoard> FindPositionsMovingPawns()
+        {
+            List<NMMBoard> positions = new List<NMMBoard>();
+            List<int> colorFields = _ranges.Where(x => fields[x] == moveColor || fields[x] == ColorToMillColor(moveColor)).ToList();
+
+            foreach (byte i in colorFields)
+            {
+                if (fields[i] == moveColor || fields[i] == ColorToMillColor(moveColor))
+                {
+                    positions.AddRange(FindPositionsMovingPawnToNeighboringField(i));
+                }
+            }
+            return positions;
+        }
+
+        public List<NMMBoard> FindPositionsFlyingPawns()
+        {
+            List<NMMBoard> positions = new List<NMMBoard>();
+            List<int> emptyFields = _ranges.Where(x => fields[x] == Color.empty).ToList();
+            List<int> colorFields = _ranges.Where(x => fields[x] == moveColor || fields[x] == ColorToMillColor(moveColor)).ToList();
+            foreach (byte i in colorFields)
+            {
+                positions.AddRange(FindPositionsMovingPawnToFlyingField(i, emptyFields));
+            }
+            return positions;
+        }
+
         public List<NMMBoard> FindPositionsRemovingOnePawn(bool toChangeColor)
         {
             byte enemyColor = ColorToEnemyColor(moveColor);
@@ -209,6 +237,51 @@ namespace AI
             {
                 positions = positions.Union(board.FindPositionsRemovingOnePawn(false), eqComparer).ToList();
                 board.moveColor = ColorToEnemyColor(board.moveColor);
+            }
+            return positions;
+        }
+    
+        public List<NMMBoard> FindPositionsMovingPawnToNeighboringField(byte origin)
+        {
+            List<NMMBoard> positions = new List<NMMBoard>();
+            foreach (byte destination in NMMBoardSetup.connections[origin])
+            {
+                NMMBoard board = new NMMBoard(this);
+                if (fields[destination] == Color.empty && 
+                    (previousMoves[ColorToPreviousMoveOrigin(board.moveColor)] != destination  || 
+                    previousMoves[ColorToPreviousMoveDestination(board.moveColor)] != origin))
+                {
+                    board.MovePawn(origin, destination, moveColor);
+                    if (board.millMoves == 1)
+                        positions.AddRange(board.FindPositionsRemovingOnePawn(true));
+                    else
+                    {
+                        board.moveColor = ColorToEnemyColor(board.moveColor);
+                        positions.Add(board);
+                    }
+                }
+            }
+            return positions;
+        }
+
+        public List<NMMBoard> FindPositionsMovingPawnToFlyingField(byte origin, List<int> possibleDestinations)
+        {
+            List<NMMBoard> positions = new List<NMMBoard>();
+            foreach (byte destination in possibleDestinations)
+            {
+                NMMBoard board = new NMMBoard(this);
+                if (previousMoves[ColorToPreviousMoveOrigin(board.moveColor)] != destination  || 
+                    previousMoves[ColorToPreviousMoveDestination(board.moveColor)] != origin)
+                {
+                    board.MovePawn(origin, destination, moveColor);
+                    if (board.millMoves == 1)
+                        positions.AddRange(board.FindPositionsRemovingOnePawn(true));
+                    else
+                    {
+                        board.moveColor = ColorToEnemyColor(board.moveColor);
+                        positions.Add(board);
+                    }
+                }
             }
             return positions;
         }
