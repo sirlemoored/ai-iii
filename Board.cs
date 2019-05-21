@@ -59,6 +59,18 @@ namespace AI
                 return GameState.moving;
         }
 
+        public List<NMMBoard> FindPossibleMoves()
+        {
+            byte gameState = GetGameState(moveColor);
+            if (gameState == GameState.placing)
+                return FindPositionsPlacingPawns();
+            else if (gameState == GameState.moving)
+                return FindPositionsMovingPawns();
+            else if (gameState == GameState.flying)
+                return FindPositionsFlyingPawns();
+            return new List<NMMBoard>();
+        }
+
         public void AddPawn(byte index, byte color)
         {
             millMoves = 0;

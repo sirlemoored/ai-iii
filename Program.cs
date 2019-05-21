@@ -1,25 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace AI
 {
     class Program
     {
+
         static void Main(string[] args)
         {
             NMMBoard b = new NMMBoard();
-            b.AddPawn(0, Color.white);
-            b.AddPawn(1, Color.white);
-            b.AddPawn(10, Color.white);
-            b.AddPawn(22, Color.black);
-            b.AddPawn(23, Color.black);
             b.moveColor = Color.white;
-            System.Console.WriteLine(b.PrintBoard());
-            foreach(var x in b.FindPositionsFlyingPawns())
+
+            for (int i = 0; i < 10; i++)
             {
-                if (x.millMoves == 1)
-                Console.WriteLine(x.PrintBoard());
+                Stopwatch s = new Stopwatch();
+                BoardEvaluator eval = new BoardEvaluator(3);
+                s.Start();
+                b = eval.EvaluateAlphaBeta(b);
+                s.Stop();
+                System.Console.WriteLine(i + " >>> " + s.Elapsed);
+                System.Console.WriteLine(b.PrintBoard());
+                
             }
+
+
+
+            Console.Read();
         }
     }
 }

@@ -1,5 +1,4 @@
 namespace AI
-
 {
     public class Color
     {
