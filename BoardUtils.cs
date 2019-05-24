@@ -69,6 +69,19 @@ namespace AI
             return isMillPossible;
         }
 
+        public List<byte> FindFreeNeighborSpaces(byte origin)
+        {
+            List<byte> neighbors = new List<byte>();
+            foreach (byte destination in NMMBoardSetup.connections[origin])
+            {
+                if (fields[destination] == Color.empty && 
+                    (previousMoves[ColorToPreviousMoveOrigin(moveColor)] != destination  || 
+                    previousMoves[ColorToPreviousMoveDestination(moveColor)] != origin))
+                    neighbors.Add(destination);
+            }
+            return neighbors;
+        }
+
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -91,6 +104,15 @@ namespace AI
             sb.Append(" |" + f(fields[3]) + "---" + f(fields[4]) + "---" + f(fields[5]) + " |\n");
             sb.Append(f(fields[0]) + "-----" + f(fields[1]) + "-----" + f(fields[2]) + "\n");
             return sb.ToString();
+        }
+
+        public static bool CheckForThreefoldRepetition(List<NMMBoard> list, NMMBoard pos)
+        {
+            var sameMoves = list.Where(x => x.moveColor == pos.moveColor && x.fields.SequenceEqual(pos.fields)).ToList();
+            if (sameMoves.Count >= 2)
+                return true;
+            else
+                return false;
         }
 
     }

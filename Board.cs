@@ -53,7 +53,7 @@ namespace AI
                 return GameState.placing;
             else if (pawnsCaptured[ColorToIndex(color)] == NMMBoardSetup.pawnsPerPlayer - NMMBoardSetup.flyingPhaseLimit)
                 return GameState.flying;
-            else if (pawnsCaptured[ColorToIndex(color)] > NMMBoardSetup.pawnsPerPlayer - NMMBoardSetup.flyingPhaseLimit)
+            else if (pawnsCaptured[ColorToIndex(color)] > NMMBoardSetup.pawnsPerPlayer - NMMBoardSetup.flyingPhaseLimit || this.FindPositionsMovingPawns().Count == 0)
                 return GameState.over;
             else
                 return GameState.moving;
@@ -299,5 +299,6 @@ namespace AI
             }
             return positions;
         }
+
     }
 }
